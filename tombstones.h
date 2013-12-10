@@ -5,6 +5,7 @@
 #if !defined(__TOMBSTONES_H__)
 #define __TOMBSTONES_H__
 #include <exception>
+#include <stdio.h>
 using namespace std;
 
 template <class T> class Pointer;
@@ -40,9 +41,9 @@ public:
 	}// copy constructor
 
 
-	Pointer<T>(T* entity)
+	Pointer<T>(T* otherEntity)
 	{
-		this->entity = entity;
+		entity = otherEntity;
 		referenceCount = 0;
 		referenceCount++;
 		hasVal = true;
@@ -59,15 +60,28 @@ public:
 	T& operator*() const
 	{
 		if(hasVal)
+		{
+			//printf("not null\n");
+			if (entity)
+				printf("value in *: %p %d\n", this->entity, *(this->entity));
+			else
+				printf("value in *: %p\n", this->entity);
 			return *entity;	
+		}
 		else
+		{
+			printf("error- null\n");
 			throw drExp;
+		}
 	}// deferencing
 
 	T* operator->() const
 	{
 		if(!(entity == 0 || !hasVal))
+		{
+			printf("->\n");
 			return *entity;	
+		}
 		else
 		{
 			throw drExp;
@@ -76,10 +90,13 @@ public:
 
 	Pointer<T>& operator=(const Pointer<T>& other)
 	{
+		printf("other: %d, ", *other);
 		//other.incRefCount();
 		//referenceCount--;
 		//Pointer<T>& temp = new Pointer<T>(&*other);
-		entity = &*other;
+		entity = other.entity;
+		printf("entity: %d\n",*entity);
+		printf("value: %p %d\n", this->entity, *(this->entity));
 		return *this;	
 	}// assignment
 
