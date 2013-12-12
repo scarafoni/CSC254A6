@@ -20,26 +20,22 @@ int main(int argc, char **argv)
     Pointer<int> tmp((int*)NULL);
     Pointer<int> bar = tmp;
 
-		printf("foo- %p %d\n", &foo, *foo);
+		//printf("foo- %p %d\n", &foo, *foo);
     if (foo == 0)
 			error("Foo shouldn't be null!");
 		if(tmp != 0)
 			error("tmp should be null!");
     if (bar != 0)
 			error("Bar should be null!");
-		//printf("bar1- %d\n",*bar);
-    int *a = new int(13);
-		printf("a- %p %d\n", a, *a);
-		printf("bar- %p\n", &bar);
-    bar = a;
 
-		printf("bar- %p %d\n", &bar, *bar);
+    bar = new int(12);
+		//printf("bar- %p %d\n", &(*bar), *bar);
     if (foo == bar)
 			error("Foo and bar are distinct pointers!");
     if (*foo != *bar)
 			error("Foo and bar should have the same value here!");
 
-    free(foo);
+		//free(foo);
     free(bar);
     cout << "foo1: OK" << endl;
     return 0;

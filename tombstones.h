@@ -52,9 +52,11 @@ public:
 
 	~Pointer<T>()
 	{
+		printf("deconstructor \n");
 		referenceCount--;
 		hasVal = false;
-		delete(entity);
+		printf("entity %d\n",entity);
+		//delete(entity);
 	}// destructor
 
 	T& operator*() const
@@ -62,10 +64,10 @@ public:
 		if(hasVal)
 		{
 			//printf("not null\n");
-			if (entity)
-				printf("value in *: %p %d\n", this->entity, *(this->entity));
-			else
-				printf("value in *: %p\n", this->entity);
+			//if (entity)
+				//printf("value in *: %p %d\n", this->entity, *(this->entity));
+			//else
+				//printf("value in *: %p\n", this->entity);
 			return *entity;	
 		}
 		else
@@ -79,7 +81,7 @@ public:
 	{
 		if(!(entity == 0 || !hasVal))
 		{
-			printf("->\n");
+			//printf("->\n");
 			return *entity;	
 		}
 		else
@@ -90,19 +92,24 @@ public:
 
 	Pointer<T>& operator=(const Pointer<T>& other)
 	{
-		printf("other: %d, ", *other);
+		//printf("other: %p %d, \n",other.entity, *other);
+		T* holder = new T(*other);
 		//other.incRefCount();
-		//referenceCount--;
-		//Pointer<T>& temp = new Pointer<T>(&*other);
-		entity = other.entity;
-		printf("entity: %d\n",*entity);
-		printf("value: %p %d\n", this->entity, *(this->entity));
+		referenceCount++;
+		entity = holder;
+		//entity = other.entity;
+		//printf("this (after change): %p %d\n", this->entity, *(this->entity));
 		return *this;	
 	}// assignment
 
 	friend void free(Pointer<T>& pointer)
 	{
-		free(&*pointer);
+		printf("freeing %p\n",&*pointer);
+		if(referenceCount == 0)
+			throw drExp;
+		referenceCount--;
+		if(referenceCount == 0)
+			free(&*pointer);
 	}// delete pointed-at object
 			// This is essentially the inverse of the new inside the call to
 			// the bootstrapping constructor.
@@ -118,7 +125,10 @@ public:
 	}
 	bool operator!=(const Pointer<T>& other) const
 	{
-		return !(this == &*other);
+		if(hasVal)
+			return entity != &*other;
+		else
+			throw drExp;
 	}
 	bool operator==(const int num) const
 	{
