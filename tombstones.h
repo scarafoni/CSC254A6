@@ -58,7 +58,7 @@ public:
 		isNull = true;
 	}// bootstrapping constructor
 			// argument should always be a call to new
-
+//this comment is pointless
 	~Pointer<T>()
 	{
 		referenceCount--;
