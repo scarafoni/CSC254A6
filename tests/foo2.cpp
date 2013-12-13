@@ -17,11 +17,15 @@ void error(const char *text)
 int main(int argc, char **argv)
 {
     Pointer<int> foo;
+		cout << 1 << "\n";
     foo = new int(12);
+		cout << 2 << "\n";
     Pointer<int> bar(foo);
+		cout << 3 << "\n";
 
     if (bar == 0)
 			error("Bar should not be null!");
+		cout << "2\n";
     if (*bar != 12)
 			error("Bar got the wrong value!");
     if (foo != bar)
@@ -29,10 +33,13 @@ int main(int argc, char **argv)
     if (*foo != *bar)
 			error("Foo and bar should have the same value here!");
     *foo = 15;
+		printf("checking bar\n");
     if (*bar != 15)
 			error("Bar should still match foo!");
 
+		printf("freeing foo \n");
     free(foo);
+		printf("freeing bar \n");
     free(bar);
     error("Attempt to double-delete pointer not flagged!");
 

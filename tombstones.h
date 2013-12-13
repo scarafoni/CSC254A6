@@ -14,9 +14,7 @@ template <class T> void free(Pointer<T>& obj);
 class danglingReferenceException : public exception
 {
 	virtual const char* what() const throw()
-	{
-		return "dangling reference error";
-	}
+	{return "dangling reference error";}
 }drExp;
 
 
@@ -27,6 +25,9 @@ private:
 	T* entity;
 	int referenceCount;
 public:
+	void downRef()
+	{referenceCount--;}
+
 	Pointer<T>() // default constructor
 	{
 		hasVal = false;
@@ -55,13 +56,12 @@ public:
 		printf("deconstructor \n");
 		referenceCount--;
 		hasVal = false;
-		printf("entity %d\n",entity);
 		//delete(entity);
 	}// destructor
 
 	T& operator*() const
 	{
-		if(hasVal)
+		if(entity != 0)
 		{
 			//printf("not null\n");
 			//if (entity)
@@ -79,9 +79,9 @@ public:
 
 	T* operator->() const
 	{
-		if(!(entity == 0 || !hasVal))
+		if(!(entity == 0))// || !hasVal))
 		{
-			//printf("->\n");
+			printf("->\n");
 			return *entity;	
 		}
 		else
@@ -92,31 +92,27 @@ public:
 
 	Pointer<T>& operator=(const Pointer<T>& other)
 	{
-		//printf("other: %p %d, \n",other.entity, *other);
+		cout << "= to pointer\n";
 		T* holder = new T(*other);
-		//other.incRefCount();
 		referenceCount++;
 		entity = holder;
-		//entity = other.entity;
-		//printf("this (after change): %p %d\n", this->entity, *(this->entity));
 		return *this;	
 	}// assignment
 
 	friend void free(Pointer<T>& pointer)
 	{
 		printf("freeing %p\n",&*pointer);
-		if(referenceCount == 0)
+		if(pointer.entity == 0)
 			throw drExp;
-		referenceCount--;
-		if(referenceCount == 0)
-			free(&*pointer);
+		free(&*pointer);
+		pointer.entity = 0;
 	}// delete pointed-at object
 			// This is essentially the inverse of the new inside the call to
 			// the bootstrapping constructor.
 	// equality comparisons:
 	bool operator==(const Pointer<T>& other) const
 	{
-		if(hasVal)
+		if(entity == 0)
 		{
 			return entity == &*other;
 		}
@@ -125,7 +121,7 @@ public:
 	}
 	bool operator!=(const Pointer<T>& other) const
 	{
-		if(hasVal)
+		if(entity != 0)//hasVal)
 			return entity != &*other;
 		else
 			throw drExp;
@@ -133,7 +129,7 @@ public:
 	bool operator==(const int num) const
 	{
 		// true iff Pointer is null and int is zero
-		return num == 0 && entity == NULL;
+		return num == 0 && entity == 0;
 	}
 	bool operator!=(const int num) const
 	{
