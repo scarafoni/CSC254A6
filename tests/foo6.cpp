@@ -18,7 +18,7 @@ Pointer<int> &rec(int n, Pointer<int> foo)
 {
     static Pointer<int> result(new int(*foo));
     if (0 == n)
-	return result;
+			return result;
     result = (Pointer<int>&)(rec(n-1, foo));
     *result += 1;
     return result;
@@ -34,18 +34,21 @@ Pointer<int> &recref(int n, Pointer<int> &foo)
 
 void proc()
 {
+	cout << "1\n";
     Pointer<int> foo(new int(0));
+	cout << "2\n";
     Pointer<int> bar(rec(100, foo));
-
+	cout << "3\n";
     if (*bar != 100 || *foo != 0)
 	error("Foo or bar incorrect after rec()!");
 
     foo = recref(100, bar);
     if (*foo != 200)
 	error("Foo incorrect after recref()!");
+	printf("foo: %p, bar: %p\n", &foo, &bar);
     if (foo != bar)
 	error("Foo not an alias for bar after recref()!");
-
+		cout <<"safe maybe?\n";
     free(foo);
 }
 

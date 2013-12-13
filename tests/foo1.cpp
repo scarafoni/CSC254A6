@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     Pointer<int> tmp((int*)NULL);
     Pointer<int> bar = tmp;
 
-		//printf("foo- %p %d\n", &foo, *foo);
+		printf("foo- %p %d\n", &foo, *foo);
     if (foo == 0)
 			error("Foo shouldn't be null!");
 		if(tmp != 0)
