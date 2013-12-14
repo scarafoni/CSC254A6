@@ -16,6 +16,7 @@ void error(const char *text)
 
 Pointer<int> &rec(int n, Pointer<int> foo)
 {
+		cout << "rec\n";
     static Pointer<int> result(new int(*foo));
     if (0 == n)
 			return result;
@@ -26,6 +27,7 @@ Pointer<int> &rec(int n, Pointer<int> foo)
 
 Pointer<int> &recref(int n, Pointer<int> &foo)
 {
+		cout << "recref\n";
     if (0 == n)
 	return foo;
     *foo += 1;
@@ -47,7 +49,7 @@ void proc()
 	error("Foo incorrect after recref()!");
 	printf("foo: %p, bar: %p\n", &foo, &bar);
     if (foo != bar)
-	error("Foo not an alias for bar after recref()!");
+			error("Foo not an alias for bar after recref()!");
 		cout <<"safe maybe?\n";
     free(foo);
 }

@@ -23,6 +23,7 @@ void fun(Pointer<int> &foo, int n)
     else
     {
 	fun(bar, n-1);
+	cout <<"READ THS\n";
 	if (n == 10)
 	{
 	    if (*foo != 100)
@@ -36,6 +37,7 @@ int main(int argc, char **argv)
 {
     Pointer<int> foo(new int(0));
     fun(foo, 10);
+		cout << "error happens HERE\n";
     Pointer<int> bar(foo);
     error("Didn't complain about use of dangling pointer foo!");
 

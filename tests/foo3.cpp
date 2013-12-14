@@ -28,7 +28,7 @@ int main(int argc, char **argv)
     Pointer<twoints> bar(new twoints(12,12));
 
     if (*foo != bar->a || *foo != bar->b)
-	error("Foo, bar->a, and bar->b should all be 12");
+			error("Foo, bar->a, and bar->b should all be 12");
 
     free(foo);
     free(bar);

@@ -32,6 +32,7 @@ int main(int argc, char **argv)
 {
     Pointer<int> foo(new int(0));
     sub(foo);
+		cout << "error happends HERE\n";
     *foo = 1000;
     error("Didn't complain about use of dangling pointer foo!");
 
