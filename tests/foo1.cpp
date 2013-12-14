@@ -16,19 +16,26 @@ void error(const char *text)
 
 int main(int argc, char **argv)
 {
-    Pointer<int> foo(new int(12));
+    Pointer<int> foo(new int(0));
+		printf("foo- %d, %p, %d \n",*foo,&foo,foo.isNull);
+		cout << "1 "<<"\n";
     Pointer<int> tmp((int*)NULL);
+		cout << 2 <<"\n";
     Pointer<int> bar = tmp;
+		cout << 3 <<"\n";
 
-		printf("foo- %p %d\n", &foo, *foo);
     if (foo == 0)
 			error("Foo shouldn't be null!");
+		cout << 4 <<"\n";
 		if(tmp != 0)
 			error("tmp should be null!");
+		cout << 5 <<"\n";
     if (bar != 0)
 			error("Bar should be null!");
 
+		cout << 6 <<"\n";
     bar = new int(12);
+		cout << 7 <<"\n";
 		//printf("bar- %p %d\n", &(*bar), *bar);
     if (foo == bar)
 			error("Foo and bar are distinct pointers!");

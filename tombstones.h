@@ -21,20 +21,18 @@ class memoryLeakException : public exception
 {
 	virtual const char* what() const throw()
 	{return "memory leak error";}
-}memLeakExp;
+}mlExp;
 
 
 template <class T>
 class Pointer {
 private:
-	bool isNull;
 	T* entity;
-	int referenceCount;
 public:
-
+	bool isNull;
+	int referenceCount;
 	Pointer<T>() // default constructor
 	{
-		printf("");
 		cout << "default " << this << "\n";
 		isNull = true;
 		entity = 0;
@@ -43,6 +41,7 @@ public:
 	Pointer<T>(Pointer<T>& otherP)
 	{
 		cout << "copy constructor " << this << "\n";
+		printf("otherP %p\n",&*otherP);
 		entity = &*otherP;
 		referenceCount = 0;
 		referenceCount++;
@@ -54,17 +53,17 @@ public:
 		cout << "bootstrap " << this << "\n";
 		entity = otherEntity;
 		referenceCount = 0;
-		//referenceCount++;
-		isNull = true;
+		referenceCount++;
+		isNull = false;
 	}// bootstrapping constructor
 			// argument should always be a call to new
-//this comment is pointless
+
 	~Pointer<T>()
 	{
 		referenceCount--;
 		cout << "deconstructor. " << this << " refs left- " << referenceCount << " freed? "<< (entity==0) << " \n";
 		if(referenceCount >= 0 && entity != 0)
-			throw memLeakExp;
+			throw mlExp;
 		//delete(entity);
 	}// destructor
 
@@ -85,7 +84,7 @@ public:
 			throw drExp;
 		}
 	}// deferencing
-
+	/*
 	T* operator->() const
 	{
 		if(!(entity == 0))// || !hasVal))
@@ -98,7 +97,7 @@ public:
 			throw drExp;
 		}	
 	}// field dereferencing
-
+	*/
 	Pointer<T>& operator=(const Pointer<T>& other)
 	{
 		printf("= to pointer %p = %p\n", this, &other);
