@@ -37,7 +37,7 @@ private:
 	bool isNull;
 	int referenceCount;
 public:
-	tombstone<T> ts;
+	//tombstone<T> ts;
 	tombstone<T>* tsp;
 	bool getIsNull()
 	{return isNull;}
@@ -51,12 +51,13 @@ public:
 		printf("\t location- %p\n",this);
 		printf("\t entity (loc, data)- %p, %d\n",tsp->entity,*(tsp->entity));
 		printf("\t null %d\n",(tsp->isNull));
-		printf("\t refcount- %d\n",referenceCount);
+		printf("\t refcount- %d\n",tsp->referenceCount);
 	}
 	Pointer<T>() // default constructor
 	{
 		cout << "default " << this << "\n";
-		tsp = &ts;
+		//tsp = &ts;
+		tsp = new tombstone<T>;
 		tsp->entity = 0;
 		tsp->isNull = true;
 		tsp->referenceCount = 0;
@@ -64,6 +65,8 @@ public:
 	Pointer<T>(Pointer<T>& otherP)
 	{
 		cout << "copy constructor " << this << "\n";
+		if(otherP.tsp->isNull)
+			throw drExp;
 		tsp = otherP.tsp;
 		tsp->referenceCount++;
 	}// copy constructor
@@ -72,11 +75,11 @@ public:
 	Pointer<T>(T* otherEntity)
 	{
 		cout << "bootstrap " << this << "\n";
-		tsp = &ts;
+		tsp = new tombstone<T>;
 		if(!(otherEntity == 0))
 			tsp->isNull = false;
 		else
-			tsp->isNull = true;
+			tsp->isNull = false;
 
 		tsp->entity = otherEntity;
 		tsp->referenceCount = 1;
@@ -85,8 +88,9 @@ public:
 
 	~Pointer<T>()
 	{
+		cout << "refs left (before delete) "<<tsp->referenceCount<<"\n";
 		tsp->referenceCount--;
-		cout << "deconstructor. " << tsp << " refs left- " << tsp->referenceCount << " freed? "<< (isNull) << " \n";
+		cout << "deconstructor. " << this << tsp << " refs left- " << tsp->referenceCount << " freed? "<< (tsp->isNull) << " \n";
 		if(tsp->referenceCount == 0 && !tsp->isNull)
 			throw mlExp;
 	}// destructor
@@ -126,8 +130,11 @@ public:
 	Pointer<T>& operator=(const Pointer<T>& other)
 	{
 		printf("= to pointer %p = %p\n", this, &other);
-		tsp = other.tsp;
-		other.tsp->referenceCount++;
+		if(tsp != other.tsp)
+		{
+			tsp = other.tsp;
+			other.tsp->referenceCount++;
+		}
 		/*referenceCount++;
 		tsp->entity = other.tsp->entity;
 		isNull = false;
@@ -139,6 +146,7 @@ public:
 	{
 		if(pointer.tsp->isNull)
 			throw drExp;
+		pointer.printInfo("free");
 		free(&*pointer);
 		pointer.tsp->isNull = true;
 	/*
