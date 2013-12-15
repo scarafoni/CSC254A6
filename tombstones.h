@@ -28,29 +28,22 @@ struct tombstone
 	T* entity;
 	int referenceCount;
 	bool isNull;
+	bool isFree;
 };
 
 template <class T>
 class Pointer {
-private:
-	T* entity;
-	bool isNull;
-	int referenceCount;
 public:
-	//tombstone<T> ts;
 	tombstone<T>* tsp;
-	bool getIsNull()
-	{return isNull;}
-
-	friend void setIsNull(Pointer<T> &pointer)
-	{pointer.isNull = true;}
 
 	void printInfo(string name)
 	{
 		cout<<"printing info on "<<name<< "\n";
 		printf("\t location- %p\n",this);
+		printf("\t tombstone- %p\n",tsp);
 		printf("\t entity (loc, data)- %p, %d\n",tsp->entity,*(tsp->entity));
 		printf("\t null %d\n",(tsp->isNull));
+		printf("\t free %d\n",(tsp->isFree));
 		printf("\t refcount- %d\n",tsp->referenceCount);
 	}
 	Pointer<T>() // default constructor
@@ -60,12 +53,13 @@ public:
 		tsp = new tombstone<T>;
 		tsp->entity = 0;
 		tsp->isNull = true;
+		tsp->isFree = false;
 		tsp->referenceCount = 0;
 	}
 	Pointer<T>(Pointer<T>& otherP)
 	{
 		cout << "copy constructor " << this << "\n";
-		if(otherP.tsp->isNull)
+		if(otherP.tsp->isFree)
 			throw drExp;
 		tsp = otherP.tsp;
 		tsp->referenceCount++;
@@ -79,10 +73,11 @@ public:
 		if(!(otherEntity == 0))
 			tsp->isNull = false;
 		else
-			tsp->isNull = false;
+			tsp->isNull = true;
 
 		tsp->entity = otherEntity;
 		tsp->referenceCount = 1;
+		tsp->isFree = false;
 	}// bootstrapping constructor
 			// argument should always be a call to new
 
@@ -90,21 +85,18 @@ public:
 	{
 		cout << "refs left (before delete) "<<tsp->referenceCount<<"\n";
 		tsp->referenceCount--;
-		cout << "deconstructor. " << this << tsp << " refs left- " << tsp->referenceCount << " freed? "<< (tsp->isNull) << " \n";
-		if(tsp->referenceCount == 0 && !tsp->isNull)
+		cout << "deconstructor. " << this <<" tsp-  "<< tsp << " refs left- " << tsp->referenceCount << " freed? "<< (tsp->isFree) << " \n";
+		if(tsp->referenceCount == 0 && !tsp->isFree && !tsp->isNull)
 			throw mlExp;
+		if(tsp->referenceCount == 0 && tsp->isFree)
+			delete(tsp);
 	}// destructor
 
 	T& operator*() const
 	{
 		printf("* on %p\n",this);
-		if(!tsp->isNull)
+		if(tsp->entity && !tsp->isFree && !tsp->isNull)
 		{
-			//printf("not null\n");
-			//if (entity)
-				//printf("value in *: %p %d\n", this->entity, *(this->entity));
-			//else
-				//printf("value in *: %p\n", this->entity);
 			return *tsp->entity;	
 		}
 		else
@@ -116,7 +108,7 @@ public:
 	
 	T* operator->() const
 	{
-		if(tsp->entity)
+		if(tsp->entity && !tsp->isFree && !tsp->isNull)
 		{
 			printf("->\n");
 			return tsp->entity;	
@@ -129,53 +121,41 @@ public:
 	
 	Pointer<T>& operator=(const Pointer<T>& other)
 	{
-		printf("= to pointer %p = %p\n", this, &other);
-		if(tsp != other.tsp)
-		{
-			tsp = other.tsp;
-			other.tsp->referenceCount++;
-		}
-		/*referenceCount++;
-		tsp->entity = other.tsp->entity;
-		isNull = false;
-		return *this;	
-		*/
+		printf("= to pointer %p = %p, %d refs left\n", this, &*other,tsp->referenceCount);
+		printInfo("=");
+		if(other.tsp == tsp)
+			return *this;
+		tsp->referenceCount--;
+		if(!tsp->isNull && !tsp->isFree && tsp->referenceCount == 0)
+			throw mlExp;
+		tsp = other.tsp;
+		tsp->referenceCount++;
 	}// assignment
 
 	friend void free(Pointer<T>& pointer)
 	{
-		if(pointer.tsp->isNull)
+		if(pointer.tsp->isNull || pointer.tsp->isFree)
 			throw drExp;
 		pointer.printInfo("free");
 		free(&*pointer);
-		pointer.tsp->isNull = true;
-	/*
-		printf("freeing %p\n",&*pointer);
-		if(pointer.getIsNull())
-		{
-			cout << "this is null\n";
-			throw drExp;
-		}
-		free(&*pointer);
-		setIsNull(pointer);
-		*/
+		pointer.tsp->isFree = true;
 	}// delete pointed-at object
 			// This is essentially the inverse of the new inside the call to
 			// the bootstrapping constructor.
 	// equality comparisons:
 	bool operator==(const Pointer<T>& other) const
 	{
-		printf("== on %p and %p\n",entity,&*other);
-		if(!isNull)
+		printf("== on %p and %p\n",tsp->entity,&*other);
+		if(!tsp->isNull && !tsp->isFree)
 		{
-			return entity == &*other;
+			return tsp->entity == &*other;
 		}
 		else
 			throw drExp;
 	}
 	bool operator!=(const Pointer<T>& other) const
 	{
-		printf("!= on %p and %p\n",entity,&*other);
+		printf("!= on %p and %p\n",tsp->entity,&*other);
 		if(!tsp->isNull)
 			return tsp->entity != other.tsp->entity;
 		else
@@ -184,7 +164,7 @@ public:
 	bool operator==(const int num) const
 	{
 		// true iff Pointer is null and int is zero
-		return num == 0 && entity == 0;
+		return num == 0 && tsp->isNull;
 	}
 	bool operator!=(const int num) const
 	{
