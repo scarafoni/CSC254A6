@@ -27,22 +27,24 @@ struct tombstone
 {
 	T* entity;
 	int referenceCount;
-	bool isNull;
 	bool isFree;
 };
 
 template <class T>
 class Pointer {
-public:
+private:
 	tombstone<T>* tsp;
 
+public:
 	void printInfo(string name)
 	{
 		cout<<"printing info on "<<name<< "\n";
 		printf("\t location- %p\n",this);
 		printf("\t tombstone- %p\n",tsp);
-		printf("\t entity (loc, data)- %p, %d\n",tsp->entity,*(tsp->entity));
-		printf("\t null %d\n",(tsp->isNull));
+		printf("\t entity (loc)- %p\n",tsp->entity);
+		if (tsp->entity) {
+			printf("\t entity (data)- %d\n",*(tsp->entity));
+		}
 		printf("\t free %d\n",(tsp->isFree));
 		printf("\t refcount- %d\n",tsp->referenceCount);
 	}
@@ -52,7 +54,6 @@ public:
 		//tsp = &ts;
 		tsp = new tombstone<T>;
 		tsp->entity = 0;
-		tsp->isNull = true;
 		tsp->isFree = false;
 		tsp->referenceCount = 0;
 	}
@@ -70,11 +71,12 @@ public:
 	{
 		cout << "bootstrap " << this << "\n";
 		tsp = new tombstone<T>;
-		if(!(otherEntity == 0))
+		/*
+		if((otherEntity || *otherEntity)
 			tsp->isNull = false;
 		else
 			tsp->isNull = true;
-
+		*/
 		tsp->entity = otherEntity;
 		tsp->referenceCount = 1;
 		tsp->isFree = false;
@@ -86,7 +88,7 @@ public:
 		cout << "refs left (before delete) "<<tsp->referenceCount<<"\n";
 		tsp->referenceCount--;
 		cout << "deconstructor. " << this <<" tsp-  "<< tsp << " refs left- " << tsp->referenceCount << " freed? "<< (tsp->isFree) << " \n";
-		if(tsp->referenceCount == 0 && !tsp->isFree && !tsp->isNull)
+		if(tsp->referenceCount == 0 && !tsp->isFree && tsp->entity)
 			throw mlExp;
 		if(tsp->referenceCount == 0 && tsp->isFree)
 			delete(tsp);
@@ -95,7 +97,7 @@ public:
 	T& operator*() const
 	{
 		printf("* on %p\n",this);
-		if(tsp->entity && !tsp->isFree && !tsp->isNull)
+		if(tsp->entity && !tsp->isFree)
 		{
 			return *tsp->entity;	
 		}
@@ -108,7 +110,7 @@ public:
 	
 	T* operator->() const
 	{
-		if(tsp->entity && !tsp->isFree && !tsp->isNull)
+		if(tsp->entity && !tsp->isFree)
 		{
 			printf("->\n");
 			return tsp->entity;	
@@ -126,7 +128,7 @@ public:
 		if(other.tsp == tsp)
 			return *this;
 		tsp->referenceCount--;
-		if(!tsp->isNull && !tsp->isFree && tsp->referenceCount == 0)
+		if(tsp->entity && *tsp->entity != 0 && !tsp->isFree && tsp->referenceCount == 0)
 			throw mlExp;
 		tsp = other.tsp;
 		tsp->referenceCount++;
@@ -134,7 +136,7 @@ public:
 
 	friend void free(Pointer<T>& pointer)
 	{
-		if(pointer.tsp->isNull || pointer.tsp->isFree)
+		if(pointer.tsp->isFree)
 			throw drExp;
 		pointer.printInfo("free");
 		free(&*pointer);
@@ -146,7 +148,7 @@ public:
 	bool operator==(const Pointer<T>& other) const
 	{
 		printf("== on %p and %p\n",tsp->entity,&*other);
-		if(!tsp->isNull && !tsp->isFree)
+		if(tsp->entity && !tsp->isFree)
 		{
 			return tsp->entity == &*other;
 		}
@@ -156,7 +158,7 @@ public:
 	bool operator!=(const Pointer<T>& other) const
 	{
 		printf("!= on %p and %p\n",tsp->entity,&*other);
-		if(!tsp->isNull)
+		if(!tsp->isFree)
 			return tsp->entity != other.tsp->entity;
 		else
 			throw drExp;
@@ -164,7 +166,7 @@ public:
 	bool operator==(const int num) const
 	{
 		// true iff Pointer is null and int is zero
-		return num == 0 && tsp->isNull;
+		return num == 0 && !tsp->entity;
 	}
 	bool operator!=(const int num) const
 	{
